@@ -6,154 +6,64 @@ var connection = mysql.createConnection({
     port: 3306,
     user: 'root',
     password: '',
-    database: 'greatBay'
+    database: 'bamazon'
 });
 
-function bidPost() {
-    inquirer.prompt([{
-        type: 'list',
-        name: 'choice',
-        message: 'What do you want to do?',
-        choices: [
-            'Bid',
-            'Post'
-        ]
-    }]).then(function (answers) {
-        if (answers.choice === 'Bid') {
-            var items = [];
-            connection.query('SELECT * FROM items', function (err, res) {
+function displayItems() {
+    connection.query('SELECT * FROM products', function (err, res) {
+        if (err) throw err;
+        console.log(res);
+    })
+};
+
+
+function goShopping() {
+    connection.query('SELECT * FROM products', function (err, res) {
+        if (err) throw err;
+        console.log(res);
+        inquirer.prompt([{
+            type: 'input',
+            name: 'id',
+            message: 'List the product ID for the item you would like to purchase:'
+        }]).then(function (answers) {
+            connection.query('SELECT * FROM products WHERE id = ?', [answers.id], function (err, res) {
                 if (err) throw err;
-                for (var i in res) {
-                    items.push(res[i].product);
-                }
+                var productID = answers.id;
+                var price = answers.price;
+                var currentStock = res[0].stock_qty;
+                console.log('Item No.', productID, 'currently has a total stock of:', currentStock);
                 inquirer.prompt([{
-                    type: 'list',
-                    name: 'choice',
-                    message: 'What do you want to bid on?',
-                    choices: items
+                    type: 'input',
+                    name: 'qty',
+                    message: 'List the quantity you would like to purchase:'
                 }]).then(function (answers) {
-                    connection.query('SELECT * FROM items WHERE product = ?', [answers.choice], function (err, res) {
-                        if (err) throw err;
-                        var product = answers.choice;
-                        var currentBid = res[0].bid;
-                        console.log('Current Bid: $', currentBid);
-                        inquirer.prompt([{
-                            type: 'input',
-                            name: 'bid',
-                            message: 'Your bid: $'
-                        }]).then(function (answers) {
-                            if (parseInt(answers.bid) > currentBid) {
-                                connection.query('UPDATE items SET ? WHERE ?', [{
-                                    bid: answers.bid
-                                }, {
-                                    product: product
-                                }], function (err, res) {
-                                    if (err) throw err;
-                                    console.log('New High Bidder!');
-                                    bidPost();
-                                });
-                            }
-                            else {
-                                console.log('Not enough');
-                                bidPost();
-                            }
-                        });
-                    });
-                });
-            });
-        }
-        else if (answers.choice === 'Post') {
-            inquirer.prompt([{
-                type: 'input',
-                name: 'product',
-                message: 'What are you selling?',
-            }, {
-                type: 'input',
-                name: 'category',
-                message: 'What category does it fit in?',
-            },
-            {
-                type: 'input',
-                name: 'bid',
-                message: 'What is the starting bid?$',
-            }]).then(function (answers) {
-                connection.query('INSERT INTO items SET ?', {
-                    product: answers.product,
-                    category: answers.category,
-                    bid: parseInt(answers.bid)
-                });
-                bidPost();
-            });
-        }
+                    console.log('You would like to purchase ', answers.qty, ' of Item No. ', productID);
+                    if (parseInt(answers.qty) <= currentStock) {
+                        connection.query('UPDATE products SET ? WHERE ?', [{
+                            stock_qty: answers.qty
+                        }, {
+                            id: productID
+                        }], function (err, res) {
+                            if (err) throw err;
+                            connection.query('SELECT * FROM products', function (err, res) {
+                                if (err) throw err;
+                                var orderTotal = parseInt(answers.qty) * parseInt(res[0].price);
+                                console.log('Order Total: $' + orderTotal);
+                                console.log('Thank you for your order!');
+                                console.log('Item ', productID, 'inventory has been updated.');
+                                goShopping();
+                            });
+                        })
+                    }
+                    else {
+                            console.log('Insufficient inventory. Only ', currentStock, 'remaining.');
+                            goShopping();
+                            connection.end();
+                        }
+                })
+            })
+        })
     });
 }
-bidPost();
 
-
-
-
-// --------
-// connection.connect(function (err) {
-//     if (err) throw err;
-//     console.log("connected as id " + connection.threadId);
-
-//     createSongs();
-// });
-
-// function createSongs() {
-//     console.log('Add new entry...\n');
-//     var query = connection.query(
-//         'INSERT INTO songs SET ?',
-//         {
-//             title: 'Toxic',
-//             artist: 'Britney Spears',
-//             genre: 'pop'
-//         },
-//         function (err, res) {
-//             console.log(res.affectedRows + ' song inserted!\n')
-//             updateSongs();
-//         }
-//     );
-//     console.log(query.sql);
-// };
-
-// function updateSongs() {
-//     console.log('Updating songs...\n');
-//     var query = connection.query('UPDATE songs SET ? WHERE ?',
-//         [
-//             {
-//                 genre: 'pop'
-//             },
-//             {
-//                 genre: 'Pop'
-//             }
-//         ],
-//         function (err, res) {
-//             console.log(res.affectedRows, ' songs updated!\n');
-//             deleteSongs();
-//         }
-//     );
-//     console.log(query.sql);
-// };
-
-// function deleteSongs() {
-//     console.log('Deleting songs...\n');
-//     connection.query('DELETE FROM songs WHERE ?',
-//         {
-//             id: 6
-//         },
-//         function (err, res) {
-//             console.log(res.affectedRows + ' songs deleted!\n');
-//             readProducts();
-//         }
-//     );
-// }
-
-// function readProducts() {
-//     console.log('Selecting all songs...\n');
-//     connection.query('SELECT * FROM songs', function (err, res) {
-//         if (err) throw err;
-//         console.log(res);
-//         connection.end();
-//     })
-// }
+goShopping();
