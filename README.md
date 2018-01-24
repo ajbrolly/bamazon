@@ -1,9 +1,10 @@
 # Bamazon
 ## Node.js & MySQL CLI Sales & Inventory App
 
-#### What is Bamazon?
+### What is Bamazon?
 Bamazon is an Amazon-like CLI storefront that uses Node.js and MySQL. The app takes in fictional orders from customers and depletes stock from the store's inventory. The application includes an Admin Menu that allows a 'store manager' to add or updated inventory, and view low-inventory items. It can also track product sales across a store's departments and provide a summary of the highest-grossing departments in the store.
 
+### Accessing the Bamazon Database
 
 #### Customer View 
 On the admin menu a customer choose to 'View Products for Sale', view those products, choose from a list of products and specify the quantity they want to purchase. This will return a total dollar amount for the order, and will then update the MySQL database with the updated inventory of that item. The application checks if the store has enough of the requested product to meet the customer's request, if not the customer is notified and the order isn't completed.
