@@ -11,3 +11,7 @@ On the admin menu a customer choose to 'View Products for Sale', view those prod
 
 #### Manager View 
 On the admin menu a manager can choose to 'View Low Inventory Items', 'Add to Inventory', or 'Add a New Product'. If the manager selects View Low Inventory, a list of all items with an inventory count lower than five is displayed. If the manager selects Add to Inventory, the app will display a prompt that will let the manager update the inventory total of any item currently in the store. Finally, If the  manager selects Add New Product, the manager can add a completely new product to the store.
+
+### Basic Functionality
+![Bamazon Basic Functionality](https://github.com/ajbrolly/bamazon/blob/master/images/readme.gif)
+
